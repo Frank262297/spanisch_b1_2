@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spanisch B1.2 Quiz 2 – Kahootstil</title>
+<style>
+:root{
+ --bg1:#f97316;
+ --bg2:#be123c;
+ --dark:#111827;
+ --muted:#64748b;
+ --violet:#6d28d9;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;
+ min-height:100vh;
+ font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+ background:linear-gradient(135deg,var(--bg1),var(--bg2));
+ color:#172033;
+}
+.app{max-width:1050px;margin:0 auto;padding:18px}
+.screen{
+ background:rgba(255,255,255,.97);
+ border-radius:28px;
+ padding:28px;
+ margin:20px 0;
+ box-shadow:0 24px 60px rgba(0,0,0,.25);
+}
+h1{margin-top:0;font-size:2.15rem}
+.subtitle{font-size:1.08rem;line-height:1.5;color:var(--muted)}
+.btn{
+ border:0;border-radius:18px;padding:14px 20px;font-size:1rem;font-weight:900;
+ cursor:pointer;background:var(--dark);color:white;
+}
+.btn.secondary{background:#e5e7eb;color:#111827}
+.topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.pill{background:#fff1f2;color:#9f1239;padding:8px 14px;border-radius:999px;font-weight:900}
+.progress{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:18px 0}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#facc15,#ef4444)}
+.task{display:inline-block;background:var(--violet);color:white;padding:7px 12px;border-radius:999px;font-weight:900;margin-bottom:10px}
+.question{font-size:1.42rem;font-weight:950;line-height:1.32;margin:14px 0 18px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.answer{
+ border:0;border-radius:22px;min-height:78px;padding:16px;color:white;font-weight:900;
+ font-size:1.03rem;text-align:left;cursor:pointer;
+}
+.answer:nth-child(1){background:#e11d48}.answer:nth-child(2){background:#2563eb}
+.answer:nth-child(3){background:#16a34a}.answer:nth-child(4){background:#f59e0b}
+textarea,input{
+ width:100%;border:3px solid #e5e7eb;border-radius:18px;padding:14px;
+ font-size:1.05rem;margin:10px 0 12px;
+}
+textarea{min-height:135px}
+.feedback{display:none;margin-top:18px;padding:16px;border-radius:18px;font-weight:800}
+.feedback.good{display:block;background:#dcfce7;color:#166534}
+.feedback.bad{display:block;background:#fee2e2;color:#991b1b}
+.feedback.neutral{display:block;background:#fef9c3;color:#854d0e}
+.imagebox{
+ background:linear-gradient(135deg,#fff7ed,#e0f2fe);
+ border-radius:26px;min-height:225px;display:flex;align-items:center;justify-content:center;
+ margin-bottom:18px;border:4px solid white;text-align:center;
+}
+.scene{font-size:4.5rem}.caption{margin-top:10px;color:var(--muted);font-weight:700}
+.info{
+ background:#f8fafc;border-radius:18px;padding:14px;margin:12px 0;color:#334155;line-height:1.45;
+ border-left:6px solid #fb7185;
+}
+.hidden{display:none}
+.reviewitem{background:#f9fafb;border-left:6px solid #fda4af;border-radius:16px;padding:14px;margin:10px 0;text-align:left}
+.bigscore{font-size:4rem;font-weight:1000;color:var(--violet)}
+@media(max-width:700px){
+ .answers{grid-template-columns:1fr}.screen{padding:18px}.question{font-size:1.2rem}.scene{font-size:3.2rem}
+ h1{font-size:1.55rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="start" class="screen">
+<h1>🇪🇸 Spanisch B1.2 – Quiz 2</h1>
+<p class="subtitle">
+40 neue Aufgaben für fortgeschrittenes B1: Zeitenmix, subjuntivo nach Auslösern,
+Wünsche und Ratschläge, Argumente, Leseverstehen, Bildinterpretation, indirekte Rede,
+Konnektoren und kleine Schreibaufgaben.
+</p>
+<p><b>Datei 2 von 3:</b> Andere Fragen als im ersten Quiz, damit die Schüler die Quizze nacheinander machen können.</p>
+<button class="btn" onclick="startQuiz()">Quiz starten</button>
+</section>
+
+<section id="quiz" class="screen hidden">
+<div class="topbar">
+<div class="pill" id="counter"></div>
+<div class="pill">Punkte: <span id="score">0</span></div>
+</div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="task" class="task"></div>
+<div id="image" class="imagebox hidden"></div>
+<div id="info" class="info hidden"></div>
+<div id="question" class="question"></div>
+<div id="content"></div>
+<div id="feedback" class="feedback"></div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap">
+<button class="btn secondary" onclick="showAnswer()">Lösung zeigen</button>
+<button class="btn" onclick="nextQuestion()">Weiter</button>
+</div>
+</section>
+
+<section id="result" class="screen hidden" style="text-align:center">
+<h1>🎉 Ergebnis</h1>
+<div class="bigscore"><span id="finalScore"></span> / 40</div>
+<p id="resultText" class="subtitle"></p>
+<button class="btn" onclick="restartQuiz()">Noch einmal spielen</button>
+<div id="review"></div>
+</section>
+
+</div>
+
+<script>
+const questions = [
+{type:"Leseverstehen",mode:"mc",info:"Texto: Daniel ha decidido cambiar de trabajo porque, aunque gana bastante bien, se siente agotado y no tiene tiempo para su familia. La semana que viene tendrá una entrevista en una empresa más pequeña.",q:"Warum möchte Daniel den Job wechseln?",options:["Porque quiere ganar menos dinero.","Porque ist erschöpft und hat wenig Zeit für die Familie.","Porque zieht er in ein anderes Land.","Porque seine Firma geschlossen hat."],correct:1,note:"Er verdient zwar gut, ist aber erschöpft und hat wenig Familienzeit."},
+{type:"Leseverstehen",mode:"mc",info:"Texto: Daniel ha decidido cambiar de trabajo porque, aunque gana bastante bien, se siente agotado y no tiene tiempo para su familia. La semana que viene tendrá una entrevista en una empresa más pequeña.",q:"Was bedeutet 'aunque gana bastante bien'?",options:["obwohl er ziemlich gut verdient","weil er schlecht verdient","wenn er gut verdient","damit er gut verdient"],correct:0,note:"aunque = obwohl."},
+{type:"Leseverstehen",mode:"text",info:"Texto: Daniel ha decidido cambiar de trabajo porque, aunque gana bastante bien, se siente agotado y no tiene tiempo para su familia. La semana que viene tendrá una entrevista en una empresa más pequeña.",q:"Schreibe einen passenden Rat an Daniel auf Spanisch.",a:"Deberías buscar un trabajo con menos estrés.",note:"Musterlösung."},
+
+{type:"Zeitenmix",mode:"mc",q:"Welche Form passt? Cuando llegué a casa, mi hermana ya _____ la cena.",options:["preparó","había preparado","ha preparado","preparaba mañana"],correct:1,note:"Vorzeitigkeit in der Vergangenheit → pluscuamperfecto."},
+{type:"Zeitenmix",mode:"fill",q:"Nunca _____ una ciudad tan bonita como Granada. (ver)",a:"he visto",note:"Erfahrung bis jetzt → pretérito perfecto."},
+{type:"Zeitenmix",mode:"fill",q:"En 2018 mis padres _____ una casa en el campo. (comprar)",a:"compraron",note:"Konkretes abgeschlossenes Jahr → indefinido."},
+{type:"Zeitenmix",mode:"mc",q:"Welche Form passt? Mientras los niños _____, los padres preparaban la comida.",options:["jugaban","jugaron","han jugado","jugarán"],correct:0,note:"Gleichzeitige Hintergrundhandlung → imperfecto."},
+{type:"Zeitenmix",mode:"text",q:"Schreibe einen Satz mit pluscuamperfecto: ya había...",a:"Cuando llegué, mi amigo ya había salido.",note:"Musterlösung."},
+
+{type:"Subjuntivo",mode:"mc",q:"Welche Form passt? Me molesta que la gente _____ tan tarde.",options:["llega","llegue","llegó","llegar"],correct:1,note:"Gefühl/Bewertung + que → subjuntivo."},
+{type:"Subjuntivo",mode:"mc",q:"Welche Form passt? No pienso que esta solución _____ la mejor.",options:["es","sea","será","era"],correct:1,note:"No pienso que + subjuntivo."},
+{type:"Subjuntivo",mode:"fill",q:"Completa: Es posible que mañana _____ lluvia. (haber)",a:"haya",note:"Es posible que + subjuntivo."},
+{type:"Subjuntivo",mode:"text",q:"Schreibe einen Wunsch mit 'Ojalá...'",a:"Ojalá tenga tiempo este fin de semana.",note:"Musterlösung."},
+
+{type:"Ratschläge",mode:"mc",q:"Ein Freund ist gestresst. Welcher Rat passt am besten?",options:["Deberías descansar un poco y organizar mejor tu tiempo.","Tienes que comprar zapatos rojos.","Nunca estudies nada.","No hables con nadie nunca."],correct:0,note:"deberías = du solltest."},
+{type:"Ratschläge",mode:"mc",q:"Welche Formulierung ist höflich?",options:["Te recomiendo que hables con tu profesor.","Habla ya, es una orden.","Tu problema no importa.","No hagas nada nunca."],correct:0,note:"Te recomiendo que + subjuntivo."},
+{type:"Ratschläge",mode:"text",q:"Gib einem Schüler einen Rat, der Spanisch sprechen üben will.",a:"Te aconsejo que hables un poco todos los días.",note:"Musterlösung."},
+{type:"Ratschläge",mode:"text",q:"Schreibe einen Satz mit 'Si yo fuera tú...'",a:"Si yo fuera tú, practicaría más con nativos.",note:"Musterlösung."},
+
+{type:"Bildinterpretation",mode:"text",image:"🧑‍💼💻📞😵‍💫",cap:"Viel Arbeit und Stress im Büro",q:"Beschreibe die Situation und gib einen Rat.",a:"La persona está muy estresada porque tiene mucho trabajo. Debería hacer una pausa.",note:"Musterlösung."},
+{type:"Bildinterpretation",mode:"mc",image:"🌍🧳📸🗺️",cap:"Reiseplanung",q:"Welche Aussage ist am passendsten?",options:["Está preparando un viaje y busca información.","Está im Krankenhaus.","Está in der Schule und schreibt eine Prüfung.","Está beim Zahnarzt."],correct:0,note:"Die Symbole zeigen Reiseplanung."},
+{type:"Bildinterpretation",mode:"text",image:"🏙️🚦🚗😤",cap:"Stau in der Stadt",q:"Schreibe einen Satz mit 'me molesta que...'",a:"Me molesta que haya tanto tráfico.",note:"Musterlösung."},
+{type:"Bildinterpretation",mode:"mc",image:"🥗🏃‍♂️💧😴",cap:"Gesunder Lebensstil",q:"Welche Empfehlung passt?",options:["Es importante comer sano, hacer deporte y dormir bien.","Es mejor comer solo dulces.","No hay que beber agua.","Dormir es malo."],correct:0,note:"Gesunder Lebensstil."},
+
+{type:"Argumentieren",mode:"mc",q:"Welche Antwort ist am überzeugendsten?",options:["Estoy a favor del transporte público porque contamina menos.","Transporte público sí bueno.","Me gusta porque sí.","No sé, coches."],correct:0,note:"Meinung + Grund."},
+{type:"Argumentieren",mode:"text",q:"Schreibe ein Argument für Online-Unterricht.",a:"Una ventaja del aprendizaje online es que puedes estudiar desde casa.",note:"Musterlösung."},
+{type:"Argumentieren",mode:"text",q:"Schreibe ein Argument gegen zu viel Handybenutzung.",a:"Una desventaja es que muchas personas pierden demasiado tiempo.",note:"Musterlösung."},
+{type:"Argumentieren",mode:"mc",q:"Welche Struktur ist am besten?",options:["Por un lado..., por otro lado...","Casa mesa perro.","Ayer mañana siempre.","Soy tener estar."],correct:0,note:"Nützlich zum Abwägen."},
+
+{type:"Konnektoren",mode:"mc",q:"Welche Verbindung passt? No obstante bedeutet ungefähr...",options:["trotzdem / dennoch","weil","zum Beispiel","außerdem"],correct:0,note:"no obstante = dennoch."},
+{type:"Konnektoren",mode:"mc",q:"Welche Verbindung passt? Estaba enfermo; _____, fue a trabajar.",options:["sin embargo","por eso","porque","ya que"],correct:0,note:"Gegensatz: sin embargo."},
+{type:"Konnektoren",mode:"fill",q:"Completa: Me gusta vivir en la ciudad. _____, a veces es demasiado ruidosa.",a:"sin embargo",note:"sin embargo = jedoch."},
+{type:"Konnektoren",mode:"text",q:"Verbinde zwei Sätze mit 'además'.",a:"Me gusta este barrio porque es tranquilo. Además, está cerca del centro.",note:"Musterlösung."},
+
+{type:"Indirekte Rede",mode:"mc",q:"Direkt: Ana dice: 'Estoy cansada.' Indirekt:",options:["Ana dice que está cansada.","Ana dice que estoy cansada.","Ana dice que estar cansada.","Ana dice cansada está que."],correct:0,note:"dice que está..."},
+{type:"Indirekte Rede",mode:"mc",q:"Direkt: Pablo dice: 'No puedo venir.' Indirekt:",options:["Pablo dice que no puede venir.","Pablo dice que no puedo venir.","Pablo dice que no venir puede él.","Pablo decir no puede."],correct:0,note:"3. Person: puede."},
+{type:"Indirekte Rede",mode:"text",q:"Forme um: Laura dice: 'Tengo mucho trabajo.'",a:"Laura dice que tiene mucho trabajo.",note:"Musterlösung."},
+{type:"Indirekte Rede",mode:"text",q:"Forme um: Mis amigos dicen: 'Queremos viajar a Perú.'",a:"Mis amigos dicen que quieren viajar a Perú.",note:"Musterlösung."},
+
+{type:"Übersetzungsfallen",mode:"mc",q:"Was bedeutet 'asistir a una clase'?",options:["an einem Unterricht teilnehmen","einer Klasse helfen","eine Klasse besitzen","eine Klasse verlassen"],correct:0,note:"asistir a = teilnehmen an."},
+{type:"Übersetzungsfallen",mode:"mc",q:"Was bedeutet 'realizar un proyecto'?",options:["ein Projekt durchführen","ein Projekt realisieren im Sinne von bemerken","ein Projekt verlieren","ein Projekt vergessen"],correct:0,note:"realizar = durchführen/umsetzen."},
+{type:"Übersetzungsfallen",mode:"mc",q:"Was bedeutet 'éxito'?",options:["Erfolg","Ausgang","Exit","Fehler"],correct:0,note:"éxito = Erfolg."},
+{type:"Übersetzungsfallen",mode:"mc",q:"Was bedeutet 'embarazada'?",options:["schwanger","peinlich berührt","verlegen","beschäftigt"],correct:0,note:"embarazada = schwanger."},
+
+{type:"Satzumformung",mode:"text",q:"Forme höflicher: Dame tu número.",a:"¿Podrías darme tu número, por favor?",note:"Musterlösung."},
+{type:"Satzumformung",mode:"text",q:"Forme mit 'aunque': Hace frío. Salgo a correr.",a:"Aunque hace frío, salgo a correr.",note:"Musterlösung."},
+{type:"Satzumformung",mode:"text",q:"Bilde einen Satz mit 'para que'.",a:"Te lo explico para que lo entiendas mejor.",note:"Musterlösung mit subjuntivo."},
+{type:"Satzumformung",mode:"mc",q:"Welche Version ist korrekt?",options:["Te llamo para que me ayudes.","Te llamo para que me ayudas.","Te llamo para que ayudarme.","Te llamo que para me ayudas."],correct:0,note:"para que + subjuntivo."},
+
+{type:"Kreativaufgabe",mode:"text",q:"Schreibe 3–4 Sätze: Was macht eine gute Lehrkraft aus?",a:"Una buena profesora explica con paciencia. También escucha a sus alumnos y prepara clases interesantes. Además, corrige los errores de forma amable.",note:"Musterlösung."},
+{type:"Kreativaufgabe",mode:"text",q:"Schreibe eine kurze Beschwerde im Hotel.",a:"Perdone, en mi habitación no funciona la calefacción. ¿Podría ayudarme, por favor?",note:"Musterlösung."},
+{type:"Kreativaufgabe",mode:"text",q:"Schreibe eine kleine Meinung zum Thema soziale Medien.",a:"Creo que las redes sociales son útiles, pero también pueden quitar mucho tiempo.",note:"Musterlösung."},
+{type:"Kreativaufgabe",mode:"text",q:"Schreibe 2 Sätze über etwas, das du früher gemacht hast und heute nicht mehr machst.",a:"Antes jugaba mucho al fútbol. Ahora no juego tanto porque tengo menos tiempo.",note:"Musterlösung."}
+];
+
+let current=0, score=0, answered=false, review=[];
+
+function startQuiz(){
+ document.getElementById("start").classList.add("hidden");
+ document.getElementById("quiz").classList.remove("hidden");
+ render();
+}
+function restartQuiz(){
+ current=0;score=0;answered=false;review=[];
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("quiz").classList.remove("hidden");
+ render();
+}
+function normalize(s){
+ return String(s||"").trim().toLowerCase()
+ .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+ .replace(/[¿?¡!.,;]/g,"")
+ .replace(/\s+/g," ");
+}
+function render(){
+ answered=false;
+ const q=questions[current];
+ document.getElementById("counter").textContent=`Frage ${current+1} / ${questions.length}`;
+ document.getElementById("score").textContent=score;
+ document.getElementById("bar").style.width=`${(current/questions.length)*100}%`;
+ document.getElementById("task").textContent=q.type;
+ document.getElementById("question").textContent=q.q;
+ document.getElementById("feedback").className="feedback";
+ document.getElementById("feedback").textContent="";
+
+ const info=document.getElementById("info");
+ if(q.info){info.classList.remove("hidden");info.textContent=q.info;} else {info.classList.add("hidden");info.textContent="";}
+
+ const img=document.getElementById("image");
+ if(q.image){
+   img.classList.remove("hidden");
+   img.innerHTML=`<div><div class="scene">${q.image}</div><div class="caption">${q.cap||""}</div></div>`;
+ } else {
+   img.classList.add("hidden");
+   img.innerHTML="";
+ }
+
+ const c=document.getElementById("content");
+ if(q.mode==="mc"){
+   c.innerHTML=`<div class="answers">${q.options.map((o,i)=>`<button class="answer" onclick="choose(${i})">${String.fromCharCode(65+i)}) ${o}</button>`).join("")}</div>`;
+ } else if(q.mode==="fill"){
+   c.innerHTML=`<input type="text" id="txt" placeholder="Antwort eingeben..."><button class="btn" onclick="checkFill()">Prüfen</button>`;
+ } else {
+   c.innerHTML=`<textarea id="txt" placeholder="Hier schreiben..."></textarea><button class="btn" onclick="saveOpen()">Als erledigt markieren</button><p class="subtitle" style="font-size:.95rem">Offene Aufgabe: Lehrkraft entscheidet. Musterlösung kann angezeigt werden.</p>`;
+ }
+}
+function choose(i){
+ if(answered)return;
+ answered=true;
+ const q=questions[current];
+ const ok=i===q.correct;
+ if(ok)score++;
+ feedback(ok, ok ? "✅ Richtig!" : `❌ Nicht ganz. Richtig: ${q.options[q.correct]}`);
+ review.push({n:current+1,q:q.q,ok,note:q.note});
+ document.getElementById("score").textContent=score;
+}
+function checkFill(){
+ if(answered)return;
+ answered=true;
+ const q=questions[current];
+ const val=normalize(document.getElementById("txt").value);
+ const ans=normalize(q.a);
+ const ok=val===ans || val.includes(ans);
+ if(ok)score++;
+ feedback(ok, ok ? "✅ Richtig!" : `❌ Nicht ganz. Lösung: ${q.a}`);
+ review.push({n:current+1,q:q.q,ok,note:q.note});
+ document.getElementById("score").textContent=score;
+}
+function saveOpen(){
+ if(answered)return;
+ answered=true;
+ feedback(null,"📝 Antwort gespeichert. Vergleiche mit der Musterlösung.");
+ review.push({n:current+1,q:questions[current].q,ok:null,note:questions[current].note});
+}
+function feedback(ok,msg){
+ const f=document.getElementById("feedback");
+ f.className="feedback "+(ok===true?"good":ok===false?"bad":"neutral");
+ f.textContent=msg;
+}
+function showAnswer(){
+ const q=questions[current];
+ const f=document.getElementById("feedback");
+ f.className="feedback neutral";
+ if(q.mode==="mc") f.textContent=`💡 Lösung: ${q.options[q.correct]} — ${q.note}`;
+ else f.textContent=`💡 Musterlösung: ${q.a} — ${q.note}`;
+}
+function nextQuestion(){
+ if(!answered){
+   review.push({n:current+1,q:questions[current].q,ok:null,note:questions[current].note});
+ }
+ current++;
+ if(current>=questions.length) finish();
+ else render();
+}
+function finish(){
+ document.getElementById("quiz").classList.add("hidden");
+ document.getElementById("result").classList.remove("hidden");
+ document.getElementById("finalScore").textContent=score;
+ let txt="Gut gemacht!";
+ if(score>=34) txt="¡Excelente! Sehr stark für B1.2.";
+ else if(score>=26) txt="Sehr gut! Du bist im fortgeschrittenen B1-Bereich.";
+ else if(score>=18) txt="Solide. Subjuntivo, Zeitenmix und Argumentation weiter üben.";
+ else txt="Guter Übungsdurchgang. Die Lösungen helfen beim Wiederholen.";
+ document.getElementById("resultText").textContent=txt;
+ document.getElementById("review").innerHTML="<h2>Auswertung / Lösungen</h2>"+review.map(r=>`
+ <div class="reviewitem">
+ <b>Frage ${r.n}</b> ${r.ok===true?"✅":r.ok===false?"❌":"📝"}<br>
+ ${r.q}<br>
+ <span style="color:#6b7280">${r.note}</span>
+ </div>`).join("");
+}
+</script>
+</body>
+</html>
